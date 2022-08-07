@@ -1,4 +1,5 @@
 import json
+import time
 from scipy.stats import gmean
 import itertools
 
@@ -11,6 +12,7 @@ def open_json(filename):
 #import "pokemons.json" and store it in a variable
 pokemon_list = open_json("pokemon_full_stats.json")
 pokemon_types = open_json("pokemon_types.json")
+pokemon_dominators = open_json("pokemon_dominators.json")
 
 gyarados = 130 
 rhydon = 112
@@ -95,7 +97,7 @@ def edge(alpha, beta):
     return attack * defense
 
 
-def show_dominators():
+def pareto_dominators():
     dominators = []
     dominateds = []
     for pokemon in pokemon_list:
@@ -105,9 +107,9 @@ def show_dominators():
             dominateds.append(pokemon)
             dominators.remove(pokemon)
 
-    print("{} pokemon are dominated".format(len(dominateds)))
-    print("{} pokemon are dominators".format(len(dominators)))
-
+    # print("{} pokemon are dominated".format(len(dominateds)))
+    # print("{} pokemon are dominators".format(len(dominators)))
+    return dominators
 
 
 def attack_geo_mean(pokemon_check):
@@ -162,12 +164,12 @@ def show_party(party):
         print(pokemon["name"])
     print("Edge of the party: {}".format(party_best_edge(party)))
 
-def best_pokemon_to_add_to_party(party):
+def best_pokemon_to_add_to_party(party, available_pokemon_list):
     #print("Current party Edge is: {}".format(party_best_edge(party)))
     max_party_edge = -1
     max_pokemon = pokemon_list[0]
 
-    for pokemon in pokemon_list:
+    for pokemon in available_pokemon_list:
         party.append(pokemon)
         party_edge = party_best_edge(party)
         if((party_edge > max_party_edge) or (party_edge == max_party_edge and pokemon["total"] > max_pokemon['total'])):
@@ -182,13 +184,16 @@ def best_pokemon_to_add_to_party(party):
     return max_pokemon
 
 
-def greedy_approach():
+def incremental_approach(available_pokemon_list=pokemon_list):
     party=[]
     while(len(party) < 6):
-        pokemon = best_pokemon_to_add_to_party(party)
+        pokemon = best_pokemon_to_add_to_party(party, available_pokemon_list)
         party.append(pokemon)
 
     return party
+
+def pareto_incremental_approach():
+    return incremental_approach(pokemon_dominators)
 
 
 def best_party_combinations(available_pokemon_list):
@@ -209,14 +214,14 @@ def best_party_combinations(available_pokemon_list):
 def naive_approach():
     return best_party_combinations(pokemon_list)
 
+
 def pareto_combinations_approach():
-    dominators = []
-    for pokemon in pokemon_list:
-        dominators.append(pokemon)
-        is_dominated = is_pareto_dominated(pokemon)
-        if(is_dominated):
-            dominators.remove(pokemon)    
-    return best_party_combinations(dominators)
+    return best_party_combinations(pokemon_dominators)
+
+def save_dominators():
+    dominators = pareto_dominators()
+    with open('pokemon_dominators.json', 'w') as f:
+        json.dump(dominators, f)
 
 def save_full_stats():
     for pokemon1 in pokemon_list:
@@ -241,24 +246,23 @@ def save_full_stats():
 #main function
 if __name__ == "__main__":
 
-    #show_dominators()
-    #print(attack_advantage(pokemon_list[mew-1], pokemon_list[mew-1]))
-    #print_pokemon_edges(pokemon_list[rhydon-1])
+    start_time = time.time()
+    best_party_greedy = incremental_approach()
+    #show_party(best_party_greedy)
+    print("Incremental approach took {} seconds".format(time.time() - start_time))
 
-    # pokemon_edges =[]
-    # for pokemon in pokemon_list:
-    #     pokemon_edges.append(edge_geo_mean(pokemon))
-    
-    # max_edge = max(pokemon_edges)
-    # max_edge_index = pokemon_edges.index(max_edge)
-    # print(pokemon_list[max_edge_index]['name'])
+    start_time = time.time()
+    best_party_pareto_incremental = pareto_incremental_approach()
+    #show_party(best_party_pareto_incremental)
+    print("Pareto incremental approach took {} seconds".format(time.time() - start_time))
 
+    start_time = time.time()
+    best_party_naive = naive_approach()
+    #show_party(best_party_naive)
+    print("Naive approach took {} seconds".format(time.time() - start_time))
 
-    # best_party_greedy = greedy_approach()
-    # show_party(best_party_greedy)
+    start_time = time.time()
+    best_party_pareto_combinations = pareto_combinations_approach()
+    #show_party(best_party_pareto_combinations)
+    print("Pareto combinations approach took {} seconds".format(time.time() - start_time))
 
-    # best_party_naive = naive_approach()
-    # show_party(best_party_naive)
-
-    best_party_pareto = pareto_combinations_approach()
-    show_party(best_party_pareto)
