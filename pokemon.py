@@ -45,41 +45,40 @@ def attack_advantage(alpha, beta):
     try:
         attack_factor11 = pokemon_types[alpha_type1][beta_type1]
     except:
+        #print("{} does not have an attack advantage against {}".format(alpha_type1, beta_type1))
         attack_factor11 = 1
     try:
         attack_factor12 = pokemon_types[alpha_type1][beta_type2]
     except:
+        #print("{} does not have an attack advantage against {}".format(alpha_type1, beta_type2))
         attack_factor12 = 1
     try:
         attack_factor21 = pokemon_types[alpha_type2][beta_type1]
     except:
-        attack_factor21 = 1
+        #print("{} does not have an attack advantage against {}".format(alpha_type2, beta_type1))
+        attack_factor21 = 0
     try:
         attack_factor22 = pokemon_types[alpha_type2][beta_type2]
     except:
+        #print("{} does not have an attack advantage against {}".format(alpha_type2, beta_type2))
         attack_factor22 = 1
-
-    # attack_factor11 = (pokemon_types.get(alpha_type1) or {}).get(beta_type1) or 1
-    # attack_factor12 = (pokemon_types.get(alpha_type1) or {}).get(beta_type2) or 1
-    # attack_factor21 = (pokemon_types.get(alpha_type2) or {}).get(beta_type1) or 1
-    # attack_factor22 = (pokemon_types.get(alpha_type2) or {}).get(beta_type2) or 1
 
     # print(attack_factor11)
     # print(attack_factor12)
     # print(attack_factor21)
     # print(attack_factor22)
 
-    return max(0.25, attack_factor11*attack_factor12, attack_factor21*attack_factor22)
+    return max(0.125, attack_factor11*attack_factor12, attack_factor21*attack_factor22)
 
 def defense_advantage(alpha, beta):
-    return attack_advantage(beta, alpha)
+    return 1/attack_advantage(beta, alpha)
 
 def edge(alpha, beta):
     attack = attack_advantage(alpha, beta)
     defense = defense_advantage(alpha, beta)
     # print("{} attack advantage".format(attack))
     # print("{} defense advantage".format(defense))
-    return attack / defense
+    return attack * defense
 
 
 def show_dominators():
@@ -130,10 +129,20 @@ def edge_geo_mean(pokemon_check, pokemon_list):
 #main function
 if __name__ == "__main__":
     #show_dominators()
-    #print(attack_advantage(pokemon_data[0], pokemon_data[3]))
-    print(attack_geo_mean(pokemon_data[129], pokemon_data)) 
-    print(defense_geo_mean(pokemon_data[129], pokemon_data))
-    print(edge_geo_mean(pokemon_data[129], pokemon_data))
+
+    gyrados = 130 
+    mew = 151
+    mewtwo = 150
+    moltres = 146
+    zapdos = 145
+    articuno = 144
+    dragonite = 149
+    rhydon = 112
+
+    #print(attack_advantage(pokemon_data[mew-1], pokemon_data[mew-1]))
+    print(attack_geo_mean(pokemon_data[rhydon - 1], pokemon_data)) 
+    print(defense_geo_mean(pokemon_data[rhydon - 1], pokemon_data))
+    print(edge_geo_mean(pokemon_data[rhydon - 1], pokemon_data))
 
     
 
