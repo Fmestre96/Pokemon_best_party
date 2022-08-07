@@ -8,9 +8,22 @@ def open_json(filename):
     return data
 
 #import "pokemons.json" and store it in a variable
-pokemon_data = open_json("pokemon_stats.json")
+pokemon_list = open_json("pokemon_stats.json")
 pokemon_types = open_json("pokemon_types.json")
 
+gyarados = 130 
+rhydon = 112
+Exeggutor = 103
+Gengar = 94
+Omastar = 139
+Venomoth = 49
+
+mew = 151
+mewtwo = 150
+moltres = 146
+zapdos = 145
+articuno = 144
+dragonite = 149
 
 
 def alpha_dom_beta(alpha, beta):
@@ -27,7 +40,7 @@ def alpha_dom_beta(alpha, beta):
             return True
     return False
 
-def is_pareto_dominated(poke_checked, pokemon_list):
+def is_pareto_dominated(poke_checked):
     for pokemon in pokemon_list:
         if(alpha_dom_beta(pokemon, poke_checked)):
             return True
@@ -46,7 +59,7 @@ def attack_advantage(alpha, beta):
         attack_factor11 = pokemon_types[alpha_type1][beta_type1]
     except:
         #print("{} does not have an attack advantage against {}".format(alpha_type1, beta_type1))
-        attack_factor11 = 1
+        attack_factor11 = 0
     try:
         attack_factor12 = pokemon_types[alpha_type1][beta_type2]
     except:
@@ -84,9 +97,9 @@ def edge(alpha, beta):
 def show_dominators():
     dominators = []
     dominateds = []
-    for pokemon in pokemon_data:
+    for pokemon in pokemon_list:
         dominators.append(pokemon)
-        is_dominated = is_pareto_dominated(pokemon, pokemon_data)
+        is_dominated = is_pareto_dominated(pokemon, pokemon_list)
         if(is_dominated):
             dominateds.append(pokemon)
             dominators.remove(pokemon)
@@ -96,7 +109,7 @@ def show_dominators():
 
 
 
-def attack_geo_mean(pokemon_check, pokemon_list):
+def attack_geo_mean(pokemon_check):
     all_attacks = []
     for pokemon in pokemon_list:
         attack = attack_advantage(pokemon_check, pokemon)
@@ -105,7 +118,7 @@ def attack_geo_mean(pokemon_check, pokemon_list):
 
     return gmean(all_attacks)
 
-def defense_geo_mean(pokemon_check, pokemon_list):
+def defense_geo_mean(pokemon_check):
     all_defenses = []
     for pokemon in pokemon_list:
         defense = defense_advantage(pokemon_check, pokemon)
@@ -115,7 +128,7 @@ def defense_geo_mean(pokemon_check, pokemon_list):
     return gmean(all_defenses)
     
 
-def edge_geo_mean(pokemon_check, pokemon_list):
+def edge_geo_mean(pokemon_check):
     all_edges = []
     for pokemon in pokemon_list:
         poke_edge = edge(pokemon_check, pokemon)
@@ -125,27 +138,77 @@ def edge_geo_mean(pokemon_check, pokemon_list):
     return gmean(all_edges)
 
 
+def print_pokemon_edges(pokemon):
+    print(attack_geo_mean(pokemon)) 
+    print(defense_geo_mean(pokemon))
+    print(edge_geo_mean(pokemon))
+
+
+def party_best_edge(party):
+    for pokemon in party:
+        pokemon['edge'] = []
+        for pokemon2 in pokemon_list:
+            poke_edge = edge(pokemon, pokemon2)
+            pokemon['edge'].append(poke_edge)
+
+    best_edge = []
+    #for each index in the pokemon_list, select the max edge of the party
+    for i in range(len(pokemon_list)):
+        party_index_edge = []
+        for pokemon in party:
+            party_index_edge.append(pokemon['edge'][i])
+        best_edge.append(max(party_index_edge))
+
+    return gmean(best_edge)
+
+
+def show_party(party):
+    for pokemon in party:
+        print(pokemon["name"])
+
+def best_pokemon_to_add_to_party(party):
+    #print("Current party Edge is: {}".format(party_best_edge(party)))
+    max_party_edge = -1
+    max_pokemon = pokemon_list[0]
+
+    for pokemon in pokemon_list:
+        party.append(pokemon)
+        party_edge = party_best_edge(party)
+        if((party_edge > max_party_edge) or (party_edge == max_party_edge and pokemon["total"] > max_pokemon['total'])):
+            max_party_edge = party_edge
+            max_pokemon = pokemon
+            # print("Max party edge: {} with pokemon {}".format(party_edge, pokemon["name"]))
+            # show_party(party)
+            # print('----------------------------------------------------')
+        party.remove(pokemon)
+    
+    #print(max_party_edge)
+    return max_pokemon
+
+
+def greedy_approach():
+    party=[]
+    while(len(party) < 10):
+        pokemon = best_pokemon_to_add_to_party(party)
+        party.append(pokemon)
+
+    return party
 
 #main function
 if __name__ == "__main__":
+
     #show_dominators()
+    #print(attack_advantage(pokemon_list[mew-1], pokemon_list[mew-1]))
+    #print_pokemon_edges(pokemon_list[rhydon-1])
 
-    gyrados = 130 
-    mew = 151
-    mewtwo = 150
-    moltres = 146
-    zapdos = 145
-    articuno = 144
-    dragonite = 149
-    rhydon = 112
-
-    #print(attack_advantage(pokemon_data[mew-1], pokemon_data[mew-1]))
-    print(attack_geo_mean(pokemon_data[rhydon - 1], pokemon_data)) 
-    print(defense_geo_mean(pokemon_data[rhydon - 1], pokemon_data))
-    print(edge_geo_mean(pokemon_data[rhydon - 1], pokemon_data))
-
+    # pokemon_edges =[]
+    # for pokemon in pokemon_list:
+    #     pokemon_edges.append(edge_geo_mean(pokemon))
     
+    # max_edge = max(pokemon_edges)
+    # max_edge_index = pokemon_edges.index(max_edge)
+    # print(pokemon_list[max_edge_index]['name'])
 
-
-# for pokemon in dominators:
-#     print(pokemon["name"])
+    #print(party_best_edge(best_party))
+    best_party_greedy = greedy_approach()
+    show_party(best_party_greedy)
