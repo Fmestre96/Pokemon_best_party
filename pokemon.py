@@ -3,6 +3,8 @@ import time
 from scipy.stats import gmean
 import itertools
 
+PARTY_SIZE = 6
+
 #create a function that opens a json file and returns the data
 def open_json(filename):
     with open(filename) as f:
@@ -186,7 +188,7 @@ def best_pokemon_to_add_to_party(party, available_pokemon_list):
 
 def incremental_approach(available_pokemon_list=pokemon_list):
     party=[]
-    while(len(party) < 6):
+    while(len(party) < PARTY_SIZE):
         pokemon = best_pokemon_to_add_to_party(party, available_pokemon_list)
         party.append(pokemon)
 
@@ -201,7 +203,7 @@ def best_party_combinations(available_pokemon_list):
     max_party_edge = -1
     best_party = []
 
-    possible_parties = list(itertools.combinations(available_pokemon_list, 6))
+    possible_parties = list(itertools.combinations(available_pokemon_list, PARTY_SIZE))
     for party in possible_parties:
         party_edge = party_best_edge(party)
         if((party_edge >= max_party_edge)):
